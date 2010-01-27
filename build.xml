@@ -1,0 +1,64 @@
+<project>
+  <path id="project.classpath">
+    <fileset dir="lib">
+      <include name="scala/*.jar" />
+      <include name="*.jar" />
+    </fileset>
+  </path>
+
+  <property name="scala-compiler.jar" value=""/>
+  <taskdef resource="scala/tools/ant/antlib.xml">
+    <classpath>
+      <pathelement location="lib/scala/scala-compiler.jar" />
+      <pathelement location="lib/scala/scala-library.jar" />
+    </classpath>
+  </taskdef>
+
+  <property name="war" location="war"/>
+  <property name="war.WEB-INF" location="war/WEB-INF"/>
+  <property name="war.classes" location="war/WEB-INF/classes"/>
+  <property name="war.lib" location="war/WEB-INF/lib"/>
+
+  <target name="clean">
+    <delete dir="${war}"/>
+  </target>
+
+  <target name="compile">
+    <mkdir dir="${war.classes}" />
+    <mkdir dir="${war.lib}" />
+
+	<!-- For GAE. Evidently, this makes our version dependencies explicit. -->
+    <copy todir="${war.lib}" flatten="true">
+      <fileset dir="appengine-java-sdk/lib/user">
+        <include name="**/*.jar" />
+      </fileset>
+    </copy>
+
+    <copy todir="${war.lib}" flatten="true">
+      <fileset dir="lib">
+        <include name="scala/scala-library.jar" />
+      </fileset>
+    </copy>
+
+    <copy todir="${war.classes}">
+      <fileset dir="src/resources">
+        <exclude name="**/WEB-INF/**" />
+      </fileset>
+    </copy>
+
+    <copy todir="${war.WEB-INF}">
+      <fileset dir="src/resources/WEB-INF"/>
+    </copy>
+
+    <javac
+        srcdir="src/java"
+        destdir="${war.classes}"
+        classpathref="project.classpath"
+        debug="on" />
+
+    <scalac srcdir="src/scala"
+            destdir="${war.classes}"
+            classpathref="project.classpath" />
+  </target>
+
+</project>

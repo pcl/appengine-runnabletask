@@ -1,0 +1,19 @@
+This is a Google App Engine application. To develop:
+
+    $ code code code
+    $ ant compile
+    $ appengine-java-sdk/bin/dev_appserver.sh war
+    $ curl 'http://localhost:8080/...'
+
+To deploy:
+
+    $ appengine-java-sdk/bin/appcfg.sh update war
+
+To manage the deployed application:
+
+    $ open 'https://appengine.google.com/dashboard?&app_id=pcl-krab-java'
+
+To see output from the shell:
+
+    $ curl 'http://localhost:8080/java_echo?echo=hello'
+    $ curl 'http://pcl-krab-java.appspot.com/java_echo?echo=hello'
