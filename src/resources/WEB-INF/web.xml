@@ -21,4 +21,22 @@
         <servlet-name>scala_echo</servlet-name>
         <url-pattern>/scala_echo</url-pattern>
     </servlet-mapping>
+
+	<servlet>
+        <servlet-name>scala_taskqueue</servlet-name>
+        <servlet-class>scala_taskqueue.TaskQueueServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>scala_taskqueue</servlet-name>
+        <url-pattern>/scala_taskqueue</url-pattern>
+    </servlet-mapping>
+
+	<servlet>
+        <servlet-name>taskhandler</servlet-name>
+        <servlet-class>taskhandler.TaskHandlerServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>taskhandler</servlet-name>
+        <url-pattern>/tasks/taskhandler</url-pattern>
+    </servlet-mapping>
 </web-app>

@@ -3,7 +3,11 @@
     <fileset dir="lib">
       <include name="scala/*.jar" />
       <include name="*.jar" />
+      <include name="*.jar" />
     </fileset>
+	<fileset dir="appengine-java-sdk">
+	  <include name="lib/user/*.jar"/>
+	</fileset>
   </path>
 
   <property name="scala-compiler.jar" value=""/>
@@ -37,6 +41,7 @@
     <copy todir="${war.lib}" flatten="true">
       <fileset dir="lib">
         <include name="scala/scala-library.jar" />
+        <include name="commons-codec-1.4.jar" />
       </fileset>
     </copy>
 
@@ -58,7 +63,8 @@
 
     <scalac srcdir="src/scala"
             destdir="${war.classes}"
-            classpathref="project.classpath" />
+            classpathref="project.classpath"
+			deprecation="on" />
   </target>
 
 </project>
