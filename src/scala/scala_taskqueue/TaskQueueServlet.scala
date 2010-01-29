@@ -13,7 +13,10 @@ class TaskQueueServlet extends JsonHttpServlet {
         200
       case _ =>
         Console.println("unrecognized message")
-        500
+        if (self.retryCount > 1)
+          200
+        else
+          500
     }
     t enqueue "message!"
     t enqueue "aoeu"

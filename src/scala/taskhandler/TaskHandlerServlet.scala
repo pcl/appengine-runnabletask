@@ -14,9 +14,23 @@ class TaskHandlerServlet extends HttpServlet {
   def handle(request: HttpServletRequest, response: HttpServletResponse) = {
     val handler = TaskHandler.deserialize(request.getParameter("h")).asInstanceOf[TaskHandler]
     val message = TaskHandler.deserialize(request.getParameter("m"))
-    val responseCode = handler.handle(message)
-    response.setStatus(responseCode.intValue)
-    response.setContentType("text/plain")
-    response.getWriter.write("status: " + responseCode.intValue)
+
+    val retryCountHeader = request.getHeader("X-AppEngine-TaskRetryCount")
+    if (retryCountHeader == null)
+      handler.retryCount = 0
+    else
+      handler.retryCount = Integer.parseInt(retryCountHeader)
+
+    var responseCode = 500
+    try {
+      TaskHandler.tl.set(handler)
+      responseCode = handler.handle(message)
+    } catch {
+      case e => e.printStackTrace(response.getWriter)
+    } finally {
+      response.setStatus(responseCode.intValue)
+      response.setContentType("text/plain")
+      response.getWriter.write("status: " + responseCode.intValue)
+    }
   }
 }

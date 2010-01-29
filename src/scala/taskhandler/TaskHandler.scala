@@ -34,7 +34,7 @@ trait TaskHandler {
    * @return an HTTP response code as defined by the standard Google App Engine
    * task queue rules (i.e., response code between 200 and 299 to indicate success). 
    */
-  def handle(msg: Any): java.lang.Integer
+  def handle(msg: Any): Int
 
   def enqueue(msg: Any) = {
     var q : Queue = null
@@ -53,6 +53,15 @@ trait TaskHandler {
    * to use the default queue.
    */
   protected def queue(): String = null
+
+  /**
+   * The retry count for this task handler. 0 the first time it's fired
+   * for a given task.
+   */
+  def retryCount = theRetryCount
+
+  private var theRetryCount: Int = 0
+  private[taskhandler] def retryCount_=(count: Int) = theRetryCount = count
 }
 
 object TaskHandler {
@@ -63,21 +72,28 @@ object TaskHandler {
    * <p>The following example demonstrates its usage:</p><pre>
    * import taskhandler.TaskHandler._
    * ...
-   * val h = task {
+   * val h = task   {
    *   ...
    * }
    * h enqueue "msg"
    * </pre>
    *
-   * @param  f     the code block to be executed by the newly created actor
-   * @return       the newly created handler.
+   * @param f the code block to be executed by the newly created actor
+   * @return the newly created handler.
    */
-  def task(f: PartialFunction[Any, java.lang.Integer]): TaskHandler = {
+  def task(f: PartialFunction[Any, Int]): TaskHandler = {
     val handler = new TaskHandler {
-      def handle(msg: Any): java.lang.Integer = f(msg)
+      def handle(msg: Any): Int = f(msg)
     }
     handler
   }
+
+  private[taskhandler] val tl = new ThreadLocal[TaskHandler]  
+
+  /**
+   * @return the current task handler object
+   */
+  def self(): TaskHandler = tl.get.asInstanceOf[TaskHandler]
 
   val base64 = new Base64()
 
