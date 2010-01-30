@@ -4,7 +4,7 @@ import servlet._
 import javax.servlet.http._
 import runnabletask.TaskQueueExecutor
 import runnabletask.TaskQueueExecutor._
-import runnabletask.SerializableRunnable._
+import runnabletask.SerializableRunnableFactory._
 
 class TaskQueueServlet extends JsonHttpServlet {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse) = 

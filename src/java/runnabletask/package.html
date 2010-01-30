@@ -1,0 +1,108 @@
+<body>
+    <p>Provides a framework for asynchronously executing a serializable {@link Runnable} via
+    Google App Engine's <a href="http://code.google.com/appengine/docs/java/taskqueue/overview.html">Task Queue</a>.</p>
+
+    <p>Google App Engine's model for task queues is centered around web hooks.
+    The developer of the task implements it as a servlet and binds it to a
+    (relative) URL in the application. The developer then provides this URL and
+    an optional set of parameters when firing off an asynchronous task. This
+    model is a sound implementation-agnostic API, but is a bit inconvenient to
+    use from the JVM, as it requires the user to create a servlet, deal with
+    HTTP requests, responses, and parameters, and edit web.xml for each asynchronous
+    task. This is particularly frustrating since Java provides a sound model for
+    asynchronous execution in the {@link java.util.concurrent.Executor} interface.</p>
+
+    <p>This package builds on top of the Google App Engine web-oriented task queues
+    to create a fluent Java- and Scala-oriented means to asynchronously perform work.</p>
+
+    Example Scala usage:
+<pre>
+import runnabletask.SerializableRunnableFactory._
+import runnabletask.TaskQueueExecutor
+import runnabletask.TaskQueueExecutor._
+
+val executor = new TaskQueueExecutor
+executor execute runnable {
+  if (<i>retryCount</i> == 0) {
+    // work work work
+  } else {
+    // the task has failed at least once; maybe do something different?
+  }
+}
+</pre>
+
+    Example Java usage:
+<pre>
+import runnabletask.SerializableRunnable;
+import runnabletask.TaskQueueExecutor;
+import static runnabletask.TaskQueueExecutor.*;
+
+Executor executor = new TaskQueueExecutor();
+executor.execute(new SerializableRunnable() {
+    public void run() {
+        if (<i>retryCount()</i> == 0) {
+            // work work work
+        } else {
+            // the task has failed at least once; maybe do something different?
+        }
+    }
+});
+</pre>
+
+    <p>To use the TaskQueueExecutor, you must bind the <code>RunnableTaskServlet</code>
+    to an endpoint in your <code>web.xml</code> configuration file. The default
+    constructor for <code>TaskQueueExecutor</code> assumes that the servlet is
+    bound to <code>/tasks/RunnableTaskServlet</code>, but you can put it anywhere
+    you'd like and provide a (relative) URL to the constructor.</p>
+
+    <p>Since the <code>RunnableTaskServlet</code> allows arbitrary code to be
+    executed, you should also provide a security constraint to limit access to the
+    URL to admins only. As a further security precaution, the servlet checks all
+    requests to ensure they're from the task queue.</p>
+
+    <p>Put the following snippet into your <code>web.xml</code> configuration
+    file for default behavior:</p>
+
+<pre>
+    &lt;servlet&gt;
+        &lt;servlet-name&gt;runnabletask&lt;/servlet-name&gt;
+        &lt;servlet-class&gt;runnabletask.RunnableTaskServlet&lt;/servlet-class&gt;
+    &lt;/servlet&gt;
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;runnabletask&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;/tasks/RunnableTaskServlet&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+
+    &lt;security-constraint&gt;
+        &lt;web-resource-collection&gt;
+            &lt;url-pattern&gt;/tasks/RunnableTaskServlet&lt;/url-pattern&gt;
+        &lt;/web-resource-collection&gt;
+        &lt;auth-constraint&gt;
+            &lt;role-name&gt;admin&lt;/role-name&gt;
+        &lt;/auth-constraint&gt;
+    &lt;/security-constraint&gt;
+</pre>
+
+    <p>Since this sits on top of the Google App Engine queues, all of the task queue
+    restrictions apply. Notable restrictions:</p>
+
+    <ul>
+        <li>The task is given a 30-second window to execute within, after which time it
+        will be terminated by Google App Engine. Of course, a task can start another
+        task, so you can subdivide your problem as needed.</li>
+
+        <li>Google App Engine restricts the size of the task object to 10 kilobytes.
+        This framework serializes your Runnables and posts them as a HTTP parameter
+        when executing the task. So, the serialized version of your Runnable must
+        not be particularly large. It would be feasible to alleviate this limit
+        by storing the serialized version to BigTable and passing an identifier along
+        via the HTTP parameter.</li>
+
+        <li>When defining an anonymous inner class (Java) or closure (Scala), the
+        variables that are closed upon will be serialized along with the Runnable.
+        Of course, this impacts the size (see previous limitation). But it's important
+        to recognize that since the task will run in a separate JVM, the closure will
+        not share VM state with the invoking context after the serialization occurs.</li>
+    </ul>
+
+</body>
