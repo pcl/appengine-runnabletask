@@ -16,7 +16,7 @@
     to create a fluent Java- and Scala-oriented means to asynchronously perform work.</p>
 
     Example Scala usage:
-<pre>
+<pre style="border: 1px solid #ccc; padding: 4px; background-color: #eee">
 import runnabletask.SerializableRunnableFactory._
 import runnabletask.TaskQueueExecutor
 import runnabletask.TaskQueueExecutor._
@@ -32,7 +32,7 @@ executor execute runnable {
 </pre>
 
     Example Java usage:
-<pre>
+<pre style="border: 1px solid #ccc; padding: 4px; background-color: #eee">
 import runnabletask.SerializableRunnable;
 import runnabletask.TaskQueueExecutor;
 import static runnabletask.TaskQueueExecutor.*;
@@ -63,24 +63,24 @@ executor.execute(new SerializableRunnable() {
     <p>Put the following snippet into your <code>web.xml</code> configuration
     file for default behavior:</p>
 
-<pre>
-    &lt;servlet&gt;
-        &lt;servlet-name&gt;runnabletask&lt;/servlet-name&gt;
-        &lt;servlet-class&gt;runnabletask.RunnableTaskServlet&lt;/servlet-class&gt;
-    &lt;/servlet&gt;
-    &lt;servlet-mapping&gt;
-        &lt;servlet-name&gt;runnabletask&lt;/servlet-name&gt;
-        &lt;url-pattern&gt;/tasks/RunnableTaskServlet&lt;/url-pattern&gt;
-    &lt;/servlet-mapping&gt;
+<pre style="border: 1px solid #ccc; padding: 4px; background-color: #eee">
+&lt;servlet&gt;
+    &lt;servlet-name&gt;runnabletask&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;runnabletask.RunnableTaskServlet&lt;/servlet-class&gt;
+&lt;/servlet&gt;
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;runnabletask&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/tasks/RunnableTaskServlet&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
 
-    &lt;security-constraint&gt;
-        &lt;web-resource-collection&gt;
-            &lt;url-pattern&gt;/tasks/RunnableTaskServlet&lt;/url-pattern&gt;
-        &lt;/web-resource-collection&gt;
-        &lt;auth-constraint&gt;
-            &lt;role-name&gt;admin&lt;/role-name&gt;
-        &lt;/auth-constraint&gt;
-    &lt;/security-constraint&gt;
+&lt;security-constraint&gt;
+    &lt;web-resource-collection&gt;
+        &lt;url-pattern&gt;/tasks/RunnableTaskServlet&lt;/url-pattern&gt;
+    &lt;/web-resource-collection&gt;
+    &lt;auth-constraint&gt;
+        &lt;role-name&gt;admin&lt;/role-name&gt;
+    &lt;/auth-constraint&gt;
+&lt;/security-constraint&gt;
 </pre>
 
     <p>Since this sits on top of the Google App Engine queues, all of the task queue
