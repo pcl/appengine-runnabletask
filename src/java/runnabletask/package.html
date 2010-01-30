@@ -92,7 +92,7 @@ executor.execute(new SerializableRunnable() {
         task, so you can subdivide your problem as needed.</li>
 
         <li>Google App Engine restricts the size of the task object to 10 kilobytes.
-        This framework serializes your Runnables and posts them as a HTTP parameter
+        This framework serializes your Runnable and posts it as an HTTP parameter
         when executing the task. So, the serialized version of your Runnable must
         not be particularly large. It would be feasible to alleviate this limit
         by storing the serialized version to BigTable and passing an identifier along
