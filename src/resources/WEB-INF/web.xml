@@ -32,11 +32,11 @@
     </servlet-mapping>
 
 	<servlet>
-        <servlet-name>taskhandler</servlet-name>
-        <servlet-class>taskhandler.TaskHandlerServlet</servlet-class>
+        <servlet-name>runnabletask</servlet-name>
+        <servlet-class>runnabletask.RunnableTaskServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>taskhandler</servlet-name>
-        <url-pattern>/tasks/taskhandler</url-pattern>
+        <servlet-name>runnabletask</servlet-name>
+        <url-pattern>/tasks/RunnableTaskServlet</url-pattern>
     </servlet-mapping>
 </web-app>
