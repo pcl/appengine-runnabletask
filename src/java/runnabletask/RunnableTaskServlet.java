@@ -20,22 +20,12 @@ public class RunnableTaskServlet extends HttpServlet {
     }
 
     private void handle(HttpServletRequest request, HttpServletResponse response) {
+        if (!allowRunnableExecution(request))
+            throw new IllegalStateException("This servlet is only accessible "
+                + "from the Google App Engine task queue.");
 
-        int retryCount = 0;
-        String devServerHeader = request.getHeader("X-Google-DevAppserver-SkipAdminCheck");
-        // Only inspect the retry count header if we're not running in the dev server,
-        // which does not set that header.
-        if (devServerHeader == null) {
-            String retryCountHeader = request.getHeader("X-AppEngine-TaskRetryCount");
-            if (retryCountHeader == null) {
-                // the request must not be from the task queue. Empirically, it seems
-                // that GAE strips out this header when specified in a curl request
-                throw new IllegalStateException("This servlet is only accessible "
-                    + "from the Google App Engine task queue.");
-            } else {
-                retryCount = Integer.parseInt(retryCountHeader);
-            }
-        }
+        String retryCountHeader = request.getHeader("X-AppEngine-TaskRetryCount");
+        int retryCount = Integer.parseInt(retryCountHeader);
 
         Runnable runnable = (Runnable) TaskQueueExecutor.deserialize(request.getParameter("r"));
         TaskQueueExecutor.setCurrentRetryCount(retryCount);
@@ -46,5 +36,19 @@ public class RunnableTaskServlet extends HttpServlet {
         } finally {
           TaskQueueExecutor.setCurrentRetryCount(-1);
         }
+    }
+
+    private boolean allowRunnableExecution(HttpServletRequest request) {
+        // Google AppEngine strips out certain headers when provided by the HTTP client, so we
+        // can rely on their presence to indicate that a request comes from the task queue.
+        // For details, see http://groups.google.com/group/google-appengine/msg/78aa0461361efc35
+        if (isDevelopmentServer(request))
+            return true;
+        
+        return request.getHeader("X-AppEngine-TaskRetryCount") != null;
+    }
+
+    private boolean isDevelopmentServer(HttpServletRequest request) {
+        return request.getHeader("X-Google-DevAppserver-SkipAdminCheck") != null;
     }
 }
