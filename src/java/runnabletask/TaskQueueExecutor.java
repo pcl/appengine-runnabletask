@@ -9,10 +9,19 @@ import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.concurrent.Executor;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.labs.taskqueue.Queue;
 import com.google.appengine.api.labs.taskqueue.QueueFactory;
+import com.google.appengine.api.labs.taskqueue.TaskOptions;
 import com.google.appengine.api.labs.taskqueue.TaskOptions.Builder;
 import org.apache.commons.codec.binary.Base64;
+
+import static runnabletask.RunnableTaskServlet.*;
 
 /**
  * An {@link Executor} that runs {@link Runnable}s via Google App Engine's
@@ -63,12 +72,26 @@ public class TaskQueueExecutor implements Executor {
     }
 
     public void execute(Runnable r) {
-        _queue.add(Builder.url(_url).param("r", serialize(r)));
+        byte[] runnableBytes = serializeAndEncode(r);
+        TaskOptions task = Builder.url(_url)
+            .param(RUNNABLE_PARAMETER_NAME, runnableBytes);
+        try {
+            _queue.add(task);
+        } catch (IllegalArgumentException e) {
+            // Assume that this means the task is too big. We're handling
+            // this via a try-catch block instead of comparing the byte array
+            // size to the advertised 10240 limit because the limit seems to
+            // be significantly off.
+            // TODO if a runnable gets created but the add fails, db will fill up
+            task = Builder.url(_url)
+                .param(RUNNABLE_ID_PARAMETER_NAME, storeRunnable(runnableBytes));
+            _queue.add(task);
+        }
     }
 
-    private static Base64 base64 = new Base64();
+    private static final Base64 base64 = new Base64();
 
-    private static byte[] serialize(Object obj) {
+    private byte[] serializeAndEncode(Object obj) {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ObjectOutputStream oout = new ObjectOutputStream(out);
@@ -79,20 +102,25 @@ public class TaskQueueExecutor implements Executor {
         }
     }
 
-    static Object deserialize(String serialized) {
-        try {
-            byte[] bytes = base64.decode(serialized);
-            InputStream in = new ByteArrayInputStream(bytes);
-            ObjectInputStream oin = new ObjectInputStream(in);
-            return oin.readObject();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+    static Object decodeAndDeserialize(String serialized)
+        throws IOException, ClassNotFoundException {
+        byte[] bytes = base64.decode(serialized);
+        InputStream in = new ByteArrayInputStream(bytes);
+        ObjectInputStream oin = new ObjectInputStream(in);
+        return oin.readObject();
     }
 
-    private static ThreadLocal<Integer> tl = new ThreadLocal<Integer>();
+    public static final String RUNNABLE_TASK_KIND = TaskQueueExecutor.class.getName() + ":runnable";
+
+    private byte[] storeRunnable(byte[] runnableBytes) {
+        Entity entity = new Entity(RUNNABLE_TASK_KIND);
+        entity.setProperty("encodedRunnableBytes", new Text(new String(runnableBytes)));
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        datastore.put(entity);
+        return serializeAndEncode(entity.getKey());
+    }
+
+    private static final ThreadLocal<Integer> tl = new ThreadLocal<Integer>();
     static {
         tl.set(-1);
     }
