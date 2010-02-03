@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
 
+import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -117,8 +118,8 @@ public class RunnableTaskServlet extends HttpServlet {
         Key key = (Key) TaskQueueExecutor.decodeAndDeserialize(encodedEntityKey);
         Entity entity = datastore.get(key);
         _entityKeyThreadLocal.set(key);
-        Text encodedRunnable = (Text) entity.getProperty("encodedRunnableBytes");
-        return (Runnable) TaskQueueExecutor.decodeAndDeserialize(encodedRunnable.getValue());
+        Blob encodedRunnable = (Blob) entity.getProperty("runnableBytes");
+        return (Runnable) TaskQueueExecutor.deserialize(encodedRunnable.getBytes());
     }
 
     private void cleanUpEntity() {
