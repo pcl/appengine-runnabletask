@@ -22,7 +22,7 @@ import runnabletask.TaskQueueExecutor
 import runnabletask.TaskQueueExecutor._
 
 val executor = new TaskQueueExecutor
-executor execute runnable {
+executor execute <i>runnable</i> {
   if (<i>retryCount</i> == 0) {
     // work work work
   } else {
@@ -92,11 +92,11 @@ executor.execute(new SerializableRunnable() {
         task, so you can subdivide your problem as needed.</li>
 
         <li>Google App Engine restricts the size of the task object to 10 kilobytes.
-        This framework serializes your Runnable and posts it as an HTTP parameter
-        when executing the task. So, the serialized version of your Runnable must
-        not be particularly large. It would be feasible to alleviate this limit
-        by storing the serialized version to BigTable and passing an identifier along
-        via the HTTP parameter.</li>
+        This framework serializes your Runnable and forwards it along to the task queue.
+        It first attempts to add the serialized Runnable as a parameter to a task. If 
+		this fails, it falls back to storing the Runnable in the datastore and then 
+		sending the stored object's key along as an HTTP parameter. So, closures of 
+		unlimited size are supported, but not necessarily recommended.</li>
 
         <li>When defining an anonymous inner class (Java) or closure (Scala), the
         variables that are closed upon will be serialized along with the Runnable.

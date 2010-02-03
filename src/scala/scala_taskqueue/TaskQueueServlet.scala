@@ -38,7 +38,7 @@ class TaskQueueServlet extends JsonHttpServlet {
       // the cleanup doesn't happen until after the task executes
       val bigRunnableChecker = runnable {
         val ds = DatastoreServiceFactory.getDatastoreService
-        val q = ds.prepare(new Query(RUNNABLE_TASK_KIND))
+        val q = ds.prepare(new Query(RUNNABLE_DB_KIND))
         if (q.countEntities > 1)
           throw new Exception("Too many entities found. Expected 1; found " + q.countEntities)
       }

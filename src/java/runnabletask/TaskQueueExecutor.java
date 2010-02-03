@@ -14,9 +14,6 @@ import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.labs.taskqueue.Queue;
 import com.google.appengine.api.labs.taskqueue.QueueFactory;
 import com.google.appengine.api.labs.taskqueue.TaskOptions;
@@ -79,7 +76,7 @@ public class TaskQueueExecutor implements Executor {
         byte[] runnableBytes = serialize(r);
         byte[] encodedRunnableBytes = base64.encode(runnableBytes);
         TaskOptions task = Builder.url(_url)
-            .param(RUNNABLE_PARAMETER_NAME, encodedRunnableBytes);
+            .param(RUNNABLE_HTTP_PARAMETER, encodedRunnableBytes);
         try {
             _queue.add(task);
         } catch (IllegalArgumentException e) {
@@ -89,7 +86,7 @@ public class TaskQueueExecutor implements Executor {
             // be significantly off.
             // TODO if a runnable gets created but the add fails, db will fill up
             task = Builder.url(_url)
-                .param(RUNNABLE_ID_PARAMETER_NAME, storeRunnable(runnableBytes));
+                .param(RUNNABLE_ID_HTTP_PARAMETER, storeRunnable(runnableBytes));
             _queue.add(task);
         }
     }
@@ -118,12 +115,14 @@ public class TaskQueueExecutor implements Executor {
         return oin.readObject();
     }
 
-    public static final String RUNNABLE_TASK_KIND = TaskQueueExecutor.class.getName() + ":runnable";
+    public static final String RUNNABLE_DB_KIND = TaskQueueExecutor.class.getName() + ":runnable";
+    public static final String RUNNABLE_BYTES_DB_PROPERTY = "runnableBytes";
+    public static final String RUNNABLE_TIMESTAMP_DB_PROPERTY = "timestamp";
 
     private byte[] storeRunnable(byte[] runnableBytes) {
-        Entity entity = new Entity(RUNNABLE_TASK_KIND);
-        entity.setUnindexedProperty("runnableBytes", new Blob(runnableBytes));
-        entity.setProperty("timestamp", new Date());
+        Entity entity = new Entity(RUNNABLE_DB_KIND);
+        entity.setUnindexedProperty(RUNNABLE_BYTES_DB_PROPERTY, new Blob(runnableBytes));
+        entity.setProperty(RUNNABLE_TIMESTAMP_DB_PROPERTY, new Date());
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         datastore.put(entity);
         return base64.encode(serialize(entity.getKey()));

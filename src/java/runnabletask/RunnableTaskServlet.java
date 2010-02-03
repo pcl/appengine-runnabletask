@@ -12,7 +12,8 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Text;
+
+import static runnabletask.TaskQueueExecutor.*;
 
 /**
  * A servlet that can handle requests posted by {@link TaskQueueExecutor}.
@@ -21,8 +22,8 @@ import com.google.appengine.api.datastore.Text;
  */
 public class RunnableTaskServlet extends HttpServlet {
 
-    static final String RUNNABLE_PARAMETER_NAME = "r";
-    static final String RUNNABLE_ID_PARAMETER_NAME = "r_id";
+    static final String RUNNABLE_HTTP_PARAMETER = "r";
+    static final String RUNNABLE_ID_HTTP_PARAMETER = "r_id";
 
     private static final ThreadLocal<Key> _entityKeyThreadLocal = new ThreadLocal<Key>();
 
@@ -72,11 +73,12 @@ public class RunnableTaskServlet extends HttpServlet {
 
         Runnable runnable;
         boolean dbNeedsCleanup = false;
-        String runnableParam = request.getParameter(RUNNABLE_PARAMETER_NAME);
+        String runnableParam = request.getParameter(RUNNABLE_HTTP_PARAMETER);
         if (runnableParam != null) {
             runnable = (Runnable) TaskQueueExecutor.decodeAndDeserialize(runnableParam);
         } else {
-            String runnableIdParam = request.getParameter(RUNNABLE_ID_PARAMETER_NAME);
+            String runnableIdParam = request.getParameter(
+                RUNNABLE_ID_HTTP_PARAMETER);
             if (runnableIdParam == null) {
                 throw new IllegalStateException(
                     "Neither a Runnable nor a Runnable ID was provided in "
@@ -114,11 +116,12 @@ public class RunnableTaskServlet extends HttpServlet {
 
     private Runnable loadRunnable(String encodedEntityKey)
         throws ClassNotFoundException, IOException, EntityNotFoundException {
+
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         Key key = (Key) TaskQueueExecutor.decodeAndDeserialize(encodedEntityKey);
         Entity entity = datastore.get(key);
         _entityKeyThreadLocal.set(key);
-        Blob encodedRunnable = (Blob) entity.getProperty("runnableBytes");
+        Blob encodedRunnable = (Blob) entity.getProperty(RUNNABLE_BYTES_DB_PROPERTY);
         return (Runnable) TaskQueueExecutor.deserialize(encodedRunnable.getBytes());
     }
 
