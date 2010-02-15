@@ -17,13 +17,11 @@
 
     Example Scala usage:
 <pre style="border: 1px solid #ccc; padding: 4px; background-color: #eee">
-import runnabletask.SerializableRunnableFactory._
-import runnabletask.TaskQueueExecutor
-import runnabletask.TaskQueueExecutor._
+import runnabletask.scala.TaskQueueExecutor
 
 val executor = new TaskQueueExecutor
-executor execute <i>runnable</i> {
-  if (<i>retryCount</i> == 0) {
+executor execute {
+  if (TaskQueueExecutor.<i>retryCount</i> == 0) {
     // work work work
   } else {
     // the task has failed at least once; maybe do something different?
@@ -35,12 +33,13 @@ executor execute <i>runnable</i> {
 <pre style="border: 1px solid #ccc; padding: 4px; background-color: #eee">
 import runnabletask.SerializableRunnable;
 import runnabletask.TaskQueueExecutor;
-import static runnabletask.TaskQueueExecutor.*;
+
+import java.util.concurrent.Executor;
 
 Executor executor = new TaskQueueExecutor();
 executor.execute(new SerializableRunnable() {
     public void run() {
-        if (<i>retryCount()</i> == 0) {
+        if (TaskQueueExecutor.<i>retryCount()</i> == 0) {
             // work work work
         } else {
             // the task has failed at least once; maybe do something different?
