@@ -1,4 +1,4 @@
-<project>
+<project name="appengine-runnabletask">
   <path id="project.classpath">
     <fileset dir="lib">
       <include name="scala/*.jar" />
@@ -18,12 +18,14 @@
     </classpath>
   </taskdef>
 
+  <property name="dist" location="dist"/>
   <property name="war" location="war"/>
   <property name="war.WEB-INF" location="war/WEB-INF"/>
   <property name="war.classes" location="war/WEB-INF/classes"/>
   <property name="war.lib" location="war/WEB-INF/lib"/>
 
   <target name="clean">
+    <delete dir="${dist}"/>
     <delete dir="${war}"/>
   </target>
 
@@ -67,4 +69,9 @@
 			deprecation="on" />
   </target>
 
+  <target name="jar" depends="compile">
+    <mkdir dir="${dist}" />
+    <jar destfile="${dist}/${ant.project.name}.jar"
+         basedir="${war.classes}" />    
+  </target>
 </project>
